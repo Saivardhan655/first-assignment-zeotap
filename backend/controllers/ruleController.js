@@ -62,3 +62,45 @@ const updateParentAST = (newRuleAST) => {
         parentAST = new Node('operator', parentAST, newRuleAST, 'AND');
     }
 };
+
+
+function evalCondition(condition, data) {
+    const [key, operator, value] = condition.split(' ');
+
+    if (operator === '>') {
+        return data[key] > parseFloat(value);
+    } else if (operator === '=') {
+        return data[key] === value.replace(/'/g, ''); // Remove quotes for string comparisons
+    } else if (operator === '<') {
+        return data[key] < parseFloat(value);
+    }
+    return false;
+}
+
+// Evaluate the AST rule recursively
+function evaluateRule(node, data) {
+    if (node.type === 'operator') {
+        const leftResult = evaluateRule(node.left, data);
+        const rightResult = evaluateRule(node.right, data);
+        return node.value === 'AND' ? leftResult && rightResult : leftResult || rightResult;
+    } else if (node.type === 'operand') {
+        return evalCondition(node.value, data);
+    }
+    return false;
+}
+
+// Controller function to handle rule evaluation requests
+function evaluateRuleHandler(req, res) {
+    const { data, ast } = req.body;
+    console.log('Received AST:', ast);
+    console.log('Data for evaluation:', data);
+
+    if (!ast) {
+        return res.status(400).json({ error: 'Invalid AST received' });
+    }
+
+    const result = evaluateRule(ast, data);
+    res.json({ eligible: result });
+}
+
+export { evaluateRuleHandler };

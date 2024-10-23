@@ -60,7 +60,7 @@ function EvaluateRule() {
 
         // Send evaluation request to backend
         try {
-            const response = await fetch('http://localhost:5000/evaluate_rule', {
+            const response = await fetch('http://localhost:5000/api/rules/evaluate_rule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: parsedData, ast: parsedAst }),
