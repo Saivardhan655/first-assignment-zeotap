@@ -33,7 +33,7 @@ const handleCombineRules = async (event) => {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/combine_ast', {
+        const response = await fetch('http://localhost:5000/api/rules/combine_ast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rules, operator }) // Send the array of rules
