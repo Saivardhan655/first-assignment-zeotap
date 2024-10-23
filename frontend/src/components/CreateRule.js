@@ -27,19 +27,26 @@ function CreateRule() {
     };
 
     return (
-        <div>
+        <div className='page-conainer'>
             <h2>Create Rule</h2>
             <textarea
                 placeholder="Enter your rule"
                 value={rule}
                 onChange={(e) => setRule(e.target.value)}
-                rows={4}
+                rows={8}
                 cols={60}
+                className='txt-area'
             />
             <br />
-            <button onClick={handleCreateRule}>Create Rule</button>
-            <h3>AST Result:</h3>
-            <pre>{result}</pre>
+            <button className='page-btn' onClick={handleCreateRule}>Create Rule</button>
+            {/* <h3>AST Result:</h3>
+            <pre>{result}</pre> */}
+            {result && (
+                <>
+                    <h3>AST Result:</h3>
+                    <pre>{result}</pre>
+                </>
+            )}
         </div>
     );
 }

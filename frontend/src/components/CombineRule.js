@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 function CombineRule() {
     const [rules, setRules] = useState(['']); // Start with one empty rule
     const [result, setResult] = useState('');
+    const [operator, setOperator] = useState('AND'); // State for operator
 
     // Handle input change for rules
     const handleRuleChange = (index, value) => {
@@ -23,46 +24,69 @@ function CombineRule() {
     };
 
     // Handle combining rules
-    const handleCombineRules = async () => {
-        try {
-            const response = await fetch('http://localhost:5000/combine_rules', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rules, operator: 'AND' }) // Send the array of rules
-            });
+    // Handle combining rules
+const handleCombineRules = async (event) => {
+    event.preventDefault(); // Prevent form submission
+    if (rules.some(rule => !rule.trim())) {
+        setResult('Error: All rules must be filled out.');
+        return;
+    }
 
-            if (response.ok) {
-                const res = await response.json();
-                setResult(JSON.stringify(res.ast, null, 2)); 
-            } else {
-                setResult('Error: Unable to combine rules.');
-            }
-        } catch (error) {
-            console.error('Error combining rules:', error);
-            setResult('Error combining rules');
+    try {
+        const response = await fetch('http://localhost:5000/combine_ast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rules, operator }) // Send the array of rules
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text(); // Read the response as text
+            setResult(`Error: ${errorText}`); // Show the error response
+            return;
         }
-    };
+
+        const res = await response.json();
+        // Set the result to the combined AST as a formatted JSON string
+        setResult(JSON.stringify(res.combinedAST, null, 2)); 
+    } catch (error) {
+        console.error('Error combining rules:', error);
+        setResult('Error combining rules');
+    }
+};
+
+    
 
     return (
-        <div>
+        <div className='page-container '>
             <h2>Combine Rules</h2>
+            <select value={operator} onChange={(e) => setOperator(e.target.value)}>
+                <option value="AND">AND</option>
+                <option value="OR">OR</option>
+            </select>
             {rules.map((rule, index) => (
-                <div key={index}>
+                <div key={index} className='combined-rule-container'>
                     <textarea
                         placeholder={`Enter rule ${index + 1}`}
                         value={rule}
                         onChange={(e) => handleRuleChange(index, e.target.value)}
                         rows={4}
                         cols={60}
+                        className='txt-area'
                     />
-                    <button onClick={() => removeRuleInput(index)}>Remove</button>
+                    <button className='page-btn1' onClick={() => removeRuleInput(index)}>Remove</button>
                 </div>
             ))}
-            <button onClick={addRuleInput}>Add Rule</button>
+            <button className='page-btn1' onClick={addRuleInput}>Add Rule</button>
             <br />
-            <button onClick={handleCombineRules}>Combine Rules</button>
-            <h3>Combined AST Result:</h3>
-            <pre>{result}</pre>
+            <button className='page-btn1' onClick={handleCombineRules}>Combine Rules</button>
+            {/* <h3>Combined AST Result:</h3>
+            <pre>{result}</pre> */}
+            {result &&
+                <>
+                    <h3>Combined AST Result:</h3>
+                    <pre>{result}</pre> 
+                </>
+            }
         </div>
     );
 }
