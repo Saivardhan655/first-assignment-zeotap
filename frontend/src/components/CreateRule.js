@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+API_URL=process.env.API_URL;
 function CreateRule() {
     const [rule, setRule] = useState('');
     const [ast, setAst] = useState(null);
@@ -7,7 +7,7 @@ function CreateRule() {
 
     const handleCreateRule = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/rules/create_rule', {
+            const response = await fetch('API_URL/api/rules/create_rule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rule })

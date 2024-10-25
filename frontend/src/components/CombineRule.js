@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+API_URL=process.env.API_URL;
 
 function CombineRule() {
     const [rules, setRules] = useState(['']); // Start with one empty rule
@@ -33,7 +34,7 @@ const handleCombineRules = async (event) => {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/api/rules/combine_ast', {
+        const response = await fetch('API_URL/api/rules/combine_ast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rules, operator }) // Send the array of rules
@@ -47,7 +48,7 @@ const handleCombineRules = async (event) => {
 
         const res = await response.json();
         // Set the result to the combined AST as a formatted JSON string
-        setResult(JSON.stringify(res.combinedAST, null, 2)); 
+        setResult(JSON.stringify(res.combinedAST, null, 2));
     } catch (error) {
         console.error('Error combining rules:', error);
         setResult('Error combining rules');

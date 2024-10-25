@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+API_URL=process.env.API_URL;
 
 function EvaluateRule() {
     const [data, setData] = useState('');  // Holds the data for evaluation
@@ -12,12 +13,12 @@ function EvaluateRule() {
     useEffect(() => {
         const fetchLatestRule = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/rules/latest_rule');
+                const response = await fetch('API_URL/api/rules/latest_rule');
                 if (response.ok) {
                     const { ast: recentAst, data } = await response.json();
 
                     // Corrected endpoint from '/parent_rule' to '/parent_ast'
-                    const parentResponse = await fetch('http://localhost:5000/api/rules/parent_ast'); 
+                    const parentResponse = await fetch('API_URL/api/rules/parent_ast'); 
                     const parentAst = parentResponse.ok ? await parentResponse.json() : null;
 
                     // Populate AST options
@@ -60,7 +61,7 @@ function EvaluateRule() {
 
         // Send evaluation request to backend
         try {
-            const response = await fetch('http://localhost:5000/api/rules/evaluate_rule', {
+            const response = await fetch('API_URL/api/rules/evaluate_rule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: parsedData, ast: parsedAst }),
