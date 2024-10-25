@@ -130,7 +130,7 @@ function EvaluateRule() {
                     {/* <h3>Result:</h3>
                     <pre>{result}</pre> */}
                     {
-                        result && 
+                        result &&
                         <>
                             <h3>Result:</h3>
                             <pre>{result}</pre> 
