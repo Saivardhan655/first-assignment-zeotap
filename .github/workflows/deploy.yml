@@ -15,9 +15,20 @@ jobs:
     services:
       mongo:
         image: mongo:6.0
+        options: >-
+          --health-cmd="mongo --eval 'db.runCommand({ping: 1})'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
         ports:
           - 27017:27017
-        options: --health-cmd "mongo --eval 'db.runCommand({ping: 1})'" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
 
     steps:
       - name: Checkout code
@@ -44,8 +55,8 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
             docker pull saivardhan24/backend:latest
             docker pull saivardhan24/frontend:latest
-            docker-compose -f ./docker-compose.yml up -d
+            docker-compose up -d
           EOF
