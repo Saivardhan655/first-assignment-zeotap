@@ -23,9 +23,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-        resources:
-          limits:
-            memory: 512M
 
     steps:
       - name: Checkout code
