@@ -14,7 +14,7 @@ jobs:
 
     services:
       mongo:
-        image: mongo:6.0
+        image: mongo:5.0
         ports:
           - 27017:27017
         options: >-
@@ -22,6 +22,9 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+        resources:
+          limits:
+            memory: 512M
 
     steps:
       - name: Checkout code
@@ -29,13 +32,13 @@ jobs:
 
       - name: Wait for MongoDB to be ready
         run: |
-          for i in {1..10}; do
+          for i in {1..15}; do
             if nc -z localhost 27017; then
               echo "MongoDB is ready!"
               break
             fi
             echo "Waiting for MongoDB..."
-            sleep 5
+            sleep 10
           done
 
       - name: Set up Docker Buildx
@@ -65,6 +68,6 @@ jobs:
             docker-compose up -d
           EOF
 
-      - name: Show MongoDB logs if failed
+      - name: Show MongoDB logs on failure
         if: failure()
-        run: docker logs $(docker ps -q --filter ancestor=mongo:6.0)
+        run: docker logs $(docker ps -aq --filter ancestor=mongo:5.0)
