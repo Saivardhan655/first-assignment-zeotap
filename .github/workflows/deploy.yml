@@ -9,12 +9,13 @@ on:
       - main
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
     services:
       mongo:
-        image: mongo:5.0
+        image: mongo:6.0
         ports:
           - 27017:27017
         options: >-
@@ -33,7 +34,7 @@ jobs:
       - name: Wait for MongoDB to be ready
         run: |
           for i in {1..15}; do
-            if nc -z localhost 27017; then
+            if docker exec $(docker ps -q --filter ancestor=mongo:6.0) mongo --eval 'db.runCommand({ping:1})'; then
               echo "MongoDB is ready!"
               break
             fi
@@ -43,6 +44,14 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -60,14 +69,38 @@ jobs:
           docker build -t saivardhan24/frontend:latest ./frontend
           docker push saivardhan24/frontend:latest
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Deploy to server
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -i <(echo "$SSH_KEY") -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
             docker pull saivardhan24/backend:latest
             docker pull saivardhan24/frontend:latest
             docker-compose up -d
           EOF
 
+      - name: Rollback on failure
+        if: failure()
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          ssh -i <(echo "$SSH_KEY") -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'EOF'
+            docker-compose down
+            docker-compose up -d
+          EOF
+
       - name: Show MongoDB logs on failure
         if: failure()
-        run: docker logs $(docker ps -aq --filter ancestor=mongo:5.0)
+        run: docker logs $(docker ps -aq --filter ancestor=mongo:6.0)
