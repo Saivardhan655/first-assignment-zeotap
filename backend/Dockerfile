@@ -1,7 +1,6 @@
 # Dockerfile for Node.js Backend
 FROM node:alpine
 
-# Create app directory
 WORKDIR /app
 
 # Install app dependencies
